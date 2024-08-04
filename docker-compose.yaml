@@ -1,0 +1,29 @@
+version: "2.27.0"
+services:
+  postgres:
+    image: postgres:16.2-bullseye
+    hostname: ${STORAGE_HOSTNAME?err}
+    ports:
+      - "${STORAGE_PORT?err}:5432"
+    user: postgres
+    environment:
+      POSTGRES_USER: ${STORAGE_USER?err}
+      POSTGRES_DB: ${STORAGE_DATABASE?err}
+      POSTGRES_PASSWORD: ${STORAGE_PASSWORD?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+  dbmigrate:
+    image: "choonkeat/dbmigrate"
+    environment:
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: "host=${STORAGE_HOSTNAME?err} user=${STORAGE_USER?err} password=${STORAGE_PASSWORD?err} dbname=${STORAGE_DATABASE?err} port=${STORAGE_PORT?err} sslmode=disable"
+    volumes:
+      - ./migrations:/migrations/db/migrations
+    working_dir: /migrations
+    command: -up #-create data
+    depends_on:
+      postgres:
+        condition: service_healthy
