@@ -1,15 +1,17 @@
+import os
+
 import psycopg
 
-from src.datasource.remote_csv_file import RemoteCSVFile
-from src.uploader.postgres_uploader import PostgresUploader
+from datasource.remote_csv_file import RemoteCSVFile
+from uploader.postgres_uploader import PostgresUploader
 
 
 if __name__ == "__main__":
-    file_url = "https://drive.google.com/uc?export=download&id=1JGz6XWXtOWRHtN2p2A37m25lGkhag0Mx"
+    file_url = os.environ['FILE_URL']
     data_source = RemoteCSVFile(file_url)
-    dsn = "host=localhost dbname=postgres user=postgres password=mysecretpassword port=5432"
-    dest_table = 'dataset'
-    batch_size = 10
+    dsn = os.environ['DATABASE_URL']
+    dest_table = os.environ['DESTINATION_TABLE']
+    batch_size = int(os.environ['BATCH_SIZE'])
     with psycopg.connect(dsn) as conn:
         loader = PostgresUploader(conn, dest_table, batch_size)
         loader.load(data_source)

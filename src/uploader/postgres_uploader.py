@@ -6,7 +6,7 @@ import pypika
 from psycopg import sql
 from pypika import Table, PostgreSQLQuery
 
-from src.model.row import RowToInsert
+from model.row import RowToInsert
 
 
 class PostgresUploader:
@@ -28,7 +28,7 @@ class PostgresUploader:
     def __create_upsert_query(self, batch: tuple[RowToInsert]) -> sql.SQL:
         q = PostgreSQLQuery.into(self.__tbl)
         for row in batch:
-            q = q.insert(row.dt, row.open, row.high, row.low, row.close, row.vol)
+            q = q.insert(row.dt.strftime('%y%m%d'), row.open, row.high, row.low, row.close, row.vol)
         q = self.__add_on_conflict_statement(q)
         return sql.SQL(q.get_sql())
 

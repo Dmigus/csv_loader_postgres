@@ -4,7 +4,7 @@ import io
 import ssl
 import urllib.request
 
-from src.model.row import RowToInsert
+from model.row import RowToInsert
 
 
 class RemoteCSVFile:
@@ -34,13 +34,10 @@ class RemoteCSVFile:
                 except Exception:
                     pass
 
-
-            # row['date'], row['open'], row['high'], row['low'], row['close'], row['vol']
-
     @staticmethod
     def __dict_to_row(row: dict) -> RowToInsert:
         return RowToInsert(
-            dt=datetime.datetime.strptime(row['date'], '%Y%m%d').date(),
+            dt=datetime.datetime.strptime(row['date'], '%y%m%d').date(),
             open=float(row['open']),
             high=float(row['high']),
             low=float(row['low']),

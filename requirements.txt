@@ -1,0 +1,4 @@
+psycopg==3.2.1
+psycopg-binary==3.2.1
+PyPika==0.48.9
+typing_extensions==4.12.2

@@ -27,3 +27,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  app:
+    build:
+      dockerfile: ./Dockerfile
+    depends_on:
+      dbmigrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "host=${STORAGE_HOSTNAME?err} user=${STORAGE_USER?err} password=${STORAGE_PASSWORD?err} dbname=${STORAGE_DATABASE?err} port=${STORAGE_PORT?err} sslmode=disable"
+      FILE_URL: ${FILE_URL}
+      BATCH_SIZE: ${BATCH_SIZE}
+      DESTINATION_TABLE: ${DESTINATION_TABLE}
