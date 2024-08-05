@@ -1,4 +1,5 @@
 import itertools
+import logging
 from typing import Iterable, Tuple
 
 import psycopg
@@ -7,6 +8,8 @@ from psycopg import sql
 from pypika import Table, PostgreSQLQuery
 
 from model.row import RowToInsert
+
+logger = logging.getLogger(__name__)
 
 
 class PostgresUploader:
@@ -21,9 +24,16 @@ class PostgresUploader:
             for batch in batched:
                 if len(batch) == 0:
                     continue
+                if logger.level <= logging.DEBUG:
+                    logger.debug(f"processing {len(batch)} lines")
                 query = self.__create_upsert_query(batch)
-                with self.__conn.transaction():
-                    cur.execute(query)
+                try:
+                    with self.__conn.transaction():
+                        cur.execute(query)
+                except Exception as e:
+                    logger.error(e)
+                else:
+                    logger.debug("lines inserted successfully")
 
     def __create_upsert_query(self, batch: tuple[RowToInsert]) -> sql.SQL:
         q = PostgreSQLQuery.into(self.__tbl)
@@ -32,7 +42,8 @@ class PostgresUploader:
         q = self.__add_on_conflict_statement(q)
         return sql.SQL(q.get_sql())
 
-    def __add_on_conflict_statement(self, q: pypika.dialects.PostgreSQLQueryBuilder) -> pypika.dialects.PostgreSQLQueryBuilder:
+    def __add_on_conflict_statement(self,
+                                    q: pypika.dialects.PostgreSQLQueryBuilder) -> pypika.dialects.PostgreSQLQueryBuilder:
         return q.on_conflict(self.__tbl.dt) \
             .do_update(self.__tbl.open) \
             .do_update(self.__tbl.high) \
